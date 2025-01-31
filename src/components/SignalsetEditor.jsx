@@ -1,6 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 
 const ByteVisualizer = ({ signals }) => {
+  const [hoveredSignal, setHoveredSignal] = useState(null);
+  const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
+  const containerRef = useRef(null);
+
   const byteMap = useMemo(() => {
     // Calculate the total number of bytes based on the maximum bit index and length
     const maxBitIndex = signals.reduce((max, signal) => {
@@ -10,7 +14,7 @@ const ByteVisualizer = ({ signals }) => {
     }, 0);
 
     const totalBytes = Math.ceil(maxBitIndex / 8);
-    const bytes = new Array(totalBytes).fill(false);
+    const bytes = new Array(totalBytes).fill(null);
     
     signals.forEach(signal => {
       if (!signal.fmt) return;
@@ -20,27 +24,74 @@ const ByteVisualizer = ({ signals }) => {
       const endByte = Math.floor((bix + len - 1) / 8);
       
       for (let i = startByte; i <= endByte; i++) {
-        bytes[i] = true;
+        if (!bytes[i]) bytes[i] = [];
+        bytes[i].push(signal);
       }
     });
     
     return bytes;
   }, [signals]);
   
+  const getByteClass = (signal, isHovered) => {
+    if (!signal) return 'bg-gray-100 text-gray-400';
+    
+    if (isHovered) {
+      return 'bg-green-500 text-white';
+    }
+    
+    return 'bg-blue-500 text-white';
+  };
+
+  const renderSignalDetails = (signal) => {
+    if (!signal) return null;
+    const { fmt, name, id, path } = signal;
+    return (
+      <div className="text-sm">
+        <p><strong>Name:</strong> {name}</p>
+        <p><strong>ID:</strong> {id}</p>
+        {path && <p><strong>Path:</strong> {path}</p>}
+        {fmt && (
+          <div>
+            <p><strong>Format:</strong></p>
+            <ul>
+              {fmt.bix !== undefined && <li>Bit Index: {fmt.bix}</li>}
+              {fmt.len !== undefined && <li>Length: {fmt.len}</li>}
+              {fmt.unit && <li>Unit: {fmt.unit}</li>}
+              {fmt.min !== undefined && <li>Min: {fmt.min}</li>}
+              {fmt.max !== undefined && <li>Max: {fmt.max}</li>}
+            </ul>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
-    <div className="flex items-center gap-1 mt-2">
-      {byteMap.map((mapped, index) => (
-        <div 
-          key={index}
-          className={`w-8 h-8 border rounded flex items-center justify-center 
-            ${mapped 
-              ? 'bg-blue-500 text-white' 
-              : 'bg-gray-100 text-gray-400'
-            }`}
-        >
-          {String.fromCharCode(65 + index)}
+    <div className="relative">
+      <div className="flex items-center gap-1 mt-2 mb-2">
+        {byteMap.map((signals, index) => (
+          <div 
+            key={index}
+            className={`w-8 h-8 border rounded flex items-center justify-center cursor-pointer transition-colors 
+              ${getByteClass(
+                hoveredSignal ? 
+                  (signals?.some(s => s === hoveredSignal) ? hoveredSignal : null) 
+                  : signals?.[0], 
+                !!hoveredSignal
+              )}`}
+            onMouseEnter={() => signals && signals.length > 0 && setHoveredSignal(signals[0])}
+            onMouseLeave={() => setHoveredSignal(null)}
+          >
+            {String.fromCharCode(65 + index)}
+          </div>
+        ))}
+      </div>
+      
+      {hoveredSignal && (
+        <div className="bg-gray-100 p-2 rounded mt-2 shadow-sm">
+          {renderSignalDetails(hoveredSignal)}
         </div>
-      ))}
+      )}
     </div>
   );
 };
