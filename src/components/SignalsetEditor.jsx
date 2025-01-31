@@ -32,6 +32,8 @@ const SignalsetEditor = () => {
     const formatCommand = (command) => {
       const cmdProps = Object.entries(command)
         .filter(([key]) => key !== 'signals')
+        .filter(([_, value]) => value !== '') // Filter out empty string values
+        .filter(([key, value]) => !(key === 'fcm1' && value === false)) // Filter out "fcm1": false
         .map(([key, value]) => `"${key}": ${JSON.stringify(value)}`)
         .join(', ');
       
@@ -159,7 +161,7 @@ const SignalsetEditor = () => {
           </div>
           <div className="p-4">
             <textarea
-              className="w-full h-[calc(100vh-300px)] font-mono text-sm p-2 border rounded"
+              className="w-full h-[calc(100vh-300px)] font-mono text-sm p-2 border rounded whitespace-pre overflow-x-auto"
               value={jsonText}
               onChange={(e) => handleJsonChange(e.target.value)}
             />
@@ -201,7 +203,7 @@ const SignalsetEditor = () => {
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
-                      Remove
+                      Delete command
                     </button>
                   </div>
                 </div>
@@ -216,6 +218,30 @@ const SignalsetEditor = () => {
                     />
                   </div>
                   <div>
+                    <label className="block text-sm mb-1">Receive address (rax)</label>
+                    <input
+                      className="w-full px-3 py-2 border rounded shadow-sm"
+                      value={command.rax || ''}
+                      onChange={(e) => handleStructuredEdit(cmdIndex, -1, 'rax', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm mb-1">Extended address (eax)</label>
+                    <input
+                      className="w-full px-3 py-2 border rounded shadow-sm"
+                      value={command.eax || ''}
+                      onChange={(e) => handleStructuredEdit(cmdIndex, -1, 'eax', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm mb-1">Tester address (tst)</label>
+                    <input
+                      className="w-full px-3 py-2 border rounded shadow-sm"
+                      value={command.tst || ''}
+                      onChange={(e) => handleStructuredEdit(cmdIndex, -1, 'tst', e.target.value)}
+                    />
+                  </div>
+                  <div>
                     <label className="block text-sm mb-1">Frequency (freq)</label>
                     <input
                       className="w-full px-3 py-2 border rounded shadow-sm"
@@ -223,6 +249,18 @@ const SignalsetEditor = () => {
                       value={command.freq || ''}
                       onChange={(e) => handleStructuredEdit(cmdIndex, -1, 'freq', parseFloat(e.target.value))}
                     />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id={`fcm1-${cmdIndex}`}
+                      className="w-4 h-4 rounded border-gray-300"
+                      checked={command.fcm1 || false}
+                      onChange={(e) => handleStructuredEdit(cmdIndex, -1, 'fcm1', e.target.checked)}
+                    />
+                    <label htmlFor={`fcm1-${cmdIndex}`} className="text-sm">
+                      Enable FCM1
+                    </label>
                   </div>
                 </div>
 
