@@ -19,11 +19,18 @@ const SignalsetEditor = () => {
       return signals.map(signal => {
         const fmt = signal.fmt || {};
         const fmtStr = Object.entries(fmt)
+          .filter(([key, value]) => {
+            if (value === undefined) return false;
+            if (value === null) return false;
+            if (typeof value === 'number' && isNaN(value)) return false;
+            // Retain properties with explicit zero or empty string values
+            return true;
+          })
           .map(([key, value]) => `"${key}": ${JSON.stringify(value)}`)
           .join(", ");
         
-        const paddedId = (signal.id || "").padEnd(maxLengths.id);
-        const paddedPath = (signal.path || "").padEnd(maxLengths.path);
+        const paddedId = (signal.id || "");
+        const paddedPath = (signal.path || "");
         
         return `    {"id": "${paddedId}", "path": "${paddedPath}", "fmt": {${fmtStr}}, "name": ${JSON.stringify(signal.name)}${signal.suggestedMetric ? `, "suggestedMetric": ${JSON.stringify(signal.suggestedMetric)}` : ''}}`;
       }).join(',\n');
@@ -311,7 +318,21 @@ const SignalsetEditor = () => {
                         <h5 className="text-sm font-medium mb-2">Format</h5>
                         <div className="grid grid-cols-3 gap-2">
                           <div>
-                            <label className="block text-sm mb-1">Length</label>
+                            <label className="block text-sm mb-1">Bit offset (bix)</label>
+                            <input
+                              className="w-full px-3 py-2 border rounded shadow-sm"
+                              type="number"
+                              value={signal.fmt?.bix || ''}
+                              onChange={(e) => handleStructuredEdit(
+                                cmdIndex,
+                                sigIndex,
+                                'fmt',
+                                { ...signal.fmt, bix: parseInt(e.target.value) }
+                              )}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm mb-1">Bit length (len)</label>
                             <input
                               className="w-full px-3 py-2 border rounded shadow-sm"
                               type="number"
@@ -321,6 +342,76 @@ const SignalsetEditor = () => {
                                 sigIndex,
                                 'fmt',
                                 { ...signal.fmt, len: parseInt(e.target.value) }
+                              )}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm mb-1">Minimum value (min)</label>
+                            <input
+                              className="w-full px-3 py-2 border rounded shadow-sm"
+                              type="number"
+                              value={signal.fmt?.min || ''}
+                              onChange={(e) => handleStructuredEdit(
+                                cmdIndex,
+                                sigIndex,
+                                'fmt',
+                                { ...signal.fmt, min: parseInt(e.target.value) }
+                              )}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm mb-1">Maximum value (max)</label>
+                            <input
+                              className="w-full px-3 py-2 border rounded shadow-sm"
+                              type="number"
+                              value={signal.fmt?.max || ''}
+                              onChange={(e) => handleStructuredEdit(
+                                cmdIndex,
+                                sigIndex,
+                                'fmt',
+                                { ...signal.fmt, max: parseInt(e.target.value) }
+                              )}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm mb-1">Add (add)</label>
+                            <input
+                              className="w-full px-3 py-2 border rounded shadow-sm"
+                              type="number"
+                              value={signal.fmt?.add || ''}
+                              onChange={(e) => handleStructuredEdit(
+                                cmdIndex,
+                                sigIndex,
+                                'fmt',
+                                { ...signal.fmt, add: parseInt(e.target.value) }
+                              )}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm mb-1">Multiply by (mul)</label>
+                            <input
+                              className="w-full px-3 py-2 border rounded shadow-sm"
+                              type="number"
+                              value={signal.fmt?.mul || ''}
+                              onChange={(e) => handleStructuredEdit(
+                                cmdIndex,
+                                sigIndex,
+                                'fmt',
+                                { ...signal.fmt, mul: parseInt(e.target.value) }
+                              )}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm mb-1">Divide by (mul)</label>
+                            <input
+                              className="w-full px-3 py-2 border rounded shadow-sm"
+                              type="number"
+                              value={signal.fmt?.div || ''}
+                              onChange={(e) => handleStructuredEdit(
+                                cmdIndex,
+                                sigIndex,
+                                'fmt',
+                                { ...signal.fmt, div: parseInt(e.target.value) }
                               )}
                             />
                           </div>
