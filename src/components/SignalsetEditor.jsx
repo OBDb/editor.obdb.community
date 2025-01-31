@@ -503,7 +503,7 @@ const SignalsetEditor = () => {
                             />
                           </div>
                           <div>
-                            <label className="block text-sm mb-1">Divide by (mul)</label>
+                            <label className="block text-sm mb-1">Divide by (div)</label>
                             <input
                               className="w-full px-3 py-2 border rounded shadow-sm"
                               type="number"
