@@ -1,4 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+
+const ByteVisualizer = ({ signals }) => {
+  const byteMap = useMemo(() => {
+    // Calculate the total number of bytes based on the maximum bit index and length
+    const maxBitIndex = signals.reduce((max, signal) => {
+      if (!signal.fmt) return max;
+      const signalMaxBit = (signal.fmt.bix || 0) + (signal.fmt.len || 0);
+      return Math.max(max, signalMaxBit);
+    }, 0);
+
+    const totalBytes = Math.ceil(maxBitIndex / 8);
+    const bytes = new Array(totalBytes).fill(false);
+    
+    signals.forEach(signal => {
+      if (!signal.fmt) return;
+      
+      const { bix = 0, len = 0 } = signal.fmt;
+      const startByte = Math.floor(bix / 8);
+      const endByte = Math.floor((bix + len - 1) / 8);
+      
+      for (let i = startByte; i <= endByte; i++) {
+        bytes[i] = true;
+      }
+    });
+    
+    return bytes;
+  }, [signals]);
+  
+  return (
+    <div className="flex items-center gap-1 mt-2">
+      {byteMap.map((mapped, index) => (
+        <div 
+          key={index}
+          className={`w-8 h-8 border rounded flex items-center justify-center 
+            ${mapped 
+              ? 'bg-blue-500 text-white' 
+              : 'bg-gray-100 text-gray-400'
+            }`}
+        >
+          {String.fromCharCode(65 + index)}
+        </div>
+      ))}
+    </div>
+  );
+};
 
 const SignalsetEditor = () => {
   const [jsonText, setJsonText] = useState('');
@@ -213,6 +258,11 @@ const SignalsetEditor = () => {
                       Delete command
                     </button>
                   </div>
+                </div>
+
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-2">Byte Mapping</label>
+                  <ByteVisualizer signals={command.signals} />
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 mb-4">
