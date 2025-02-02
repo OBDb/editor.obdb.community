@@ -221,11 +221,24 @@ const SignalsetEditor = () => {
 
   const fetchFromGithub = async () => {
     try {
-      const rawUrl = githubUrl
+      let processedUrl = githubUrl.trim();
+      
+      // If URL doesn't contain /signalsets/v3/default.json, append it
+      if (!processedUrl.includes('/signalsets/v3/default.json')) {
+        // Remove trailing slash if present
+        processedUrl = processedUrl.replace(/\/$/, '');
+        processedUrl += '/blob/main/signalsets/v3/default.json';
+      }
+
+      // Convert to raw URL format
+      const rawUrl = processedUrl
         .replace('github.com', 'raw.githubusercontent.com')
         .replace('/blob/', '/');
-      
+
       const response = await fetch(rawUrl);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const text = await response.text();
       handleJsonChange(text);
     } catch (e) {
